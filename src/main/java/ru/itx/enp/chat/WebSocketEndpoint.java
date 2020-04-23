@@ -1,6 +1,7 @@
 package ru.itx.enp.chat;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,29 +13,42 @@ import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
+import org.dizitart.no2.Cursor;
+import org.dizitart.no2.Document;
+import org.dizitart.no2.FindOptions;
+import org.dizitart.no2.Nitrite;
+import org.dizitart.no2.NitriteCollection;
+import org.dizitart.no2.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ServerEndpoint("/socket/{user}")
 public class WebSocketEndpoint {
-	private Logger logger = LoggerFactory.getLogger(WebSocketEndpoint.class);
+	private static Logger logger = LoggerFactory.getLogger(WebSocketEndpoint.class);
 	private static Map<String,Session> connections = Collections.synchronizedMap(new HashMap<>());
+	private static Nitrite db = Nitrite.builder().compressed().filePath("chat.db").openOrCreate("chat", "chatpwd");
+	private static NitriteCollection collection = db.getCollection("chat");
 
 	@OnOpen
-	public void onOpen(Session session, @PathParam("user") String user) {
+	public void onOpen(Session session, @PathParam("user") String user) throws IOException {
 		logger.info("Open session: {} from user {}", session.getId(), user);
 		connections.put(user, session);
+		Cursor cursor = collection.find(FindOptions.sort("text", SortOrder.Descending).thenLimit(0, 3));
+		for (Document document : cursor) {
+			logger.info("Load document: {} in session {} from user {}", document, session.getId(), user);
+			session.getBasicRemote().sendText(document.get("text", String.class));
+		}
 	}
 
 	@OnMessage
 	public void onMessage(Session session, @PathParam("user") String from, String message) throws IOException {
 		logger.info("Receive message: {} in session {} from user {}", message, session.getId(), from);
+		Calendar now = Calendar.getInstance();
+		String text = String.format("%tF %tT - %s: %s", now, now, from, message);
+		collection.insert(Document.createDocument("text", text));
 		for (String user : connections.keySet()) {
-			logger.info("Found session {} in connections", connections.get(user).getId());
-			if (!connections.get(user).equals(session)) {
-				logger.info("Send message {} to session {}", message, connections.get(user).getId());
-				connections.get(user).getBasicRemote().sendText(String.format("%s: %s", from, message));
-			}
+			logger.info("Send message {} to session {} from user {}", message, connections.get(user).getId(), user);
+			connections.get(user).getBasicRemote().sendText(text);
 		}
 	}
 

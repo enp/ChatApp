@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="UTF-8">
+        <meta charset='UTF-8'>
         <title>ChatApp</title>
-        <script type="text/javascript">
+        <script type='text/javascript'>
 	        onload = () => {
 	        	connect.onclick = () => {
 	        		if (connect.innerText == 'Connect') {
@@ -19,6 +19,7 @@
 			        		cell.appendChild(document.createTextNode(message.data))
 			        	}
 		        		socket.onclose = () => {
+		        			messages.innerHTML = ''
 	                        connect.innerText = 'Connect'
 	                        chat.style.display = 'none'
 	                    }
@@ -36,7 +37,7 @@
     	<input id='user' placeholder='User'><button id='connect'>Connect</button>
     	<div id='chat' style='display:none'>
     	<input id='message' placeholder='Message'><button id='send'>Send</button>
-    	<table id="messages"></table>
+    	<table id='messages'></table>
     	</div>
     </body>
 </html>
