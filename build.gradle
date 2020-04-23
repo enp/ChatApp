@@ -8,8 +8,14 @@ mainClassName = 'ru.itx.enp.chat.App'
 
 dependencies {
     compile 'javax.websocket:javax.websocket-api:1.1'
+	compile 'org.slf4j:slf4j-simple:1.7.30'
 }
 
 repositories {
 	jcenter()
+}
+
+gretty {
+	host = '0.0.0.0'
+	contextPath = '/'
 }
