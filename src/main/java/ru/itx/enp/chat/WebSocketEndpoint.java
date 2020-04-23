@@ -18,7 +18,6 @@ import org.dizitart.no2.Document;
 import org.dizitart.no2.FindOptions;
 import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.NitriteCollection;
-import org.dizitart.no2.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +32,8 @@ public class WebSocketEndpoint {
 	public void onOpen(Session session, @PathParam("user") String user) throws IOException {
 		logger.info("Open session: {} from user {}", session.getId(), user);
 		connections.put(user, session);
-		Cursor cursor = collection.find(FindOptions.sort("text", SortOrder.Descending).thenLimit(0, 3));
+		int size = (int) collection.size();
+		Cursor cursor = size > 3 ? collection.find(FindOptions.limit(size-3, size)) : collection.find();
 		for (Document document : cursor) {
 			logger.info("Load document: {} in session {} from user {}", document, session.getId(), user);
 			session.getBasicRemote().sendText(document.get("text", String.class));
