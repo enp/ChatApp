@@ -3,18 +3,40 @@
     <head>
         <meta charset="UTF-8">
         <title>ChatApp</title>
-    </head>
-    <body>
         <script type="text/javascript">
 	        onload = () => {
-	        	const socket = new WebSocket(`ws://${location.host}/socket`)
-	        	socket.onmessage = (message) => {
-	        		console.log(message)
-	        	}
-	        	socket.onopen = () => {
-	        		socket.send("Hello!")
+	        	connect.onclick = () => {
+	        		if (connect.innerText == 'Connect') {
+		        		socket = new WebSocket(`ws://${location.host}/socket/${user.value}`)
+		        		socket.onopen = () => {
+	                        connect.innerText = 'Disconnect'
+	                        chat.style.display = 'block'
+	                    }
+			        	socket.onmessage = (message) => {
+			        		//console.log(message.data)
+			        		const row = messages.insertRow(0)
+							const cell = row.insertCell(0)
+			        		cell.appendChild(document.createTextNode(message.data))
+			        	}
+		        		socket.onclose = () => {
+	                        connect.innerText = 'Connect'
+	                        chat.style.display = 'none'
+	                    }
+	        		} else {
+	        			socket.close()
+	        		}
+	            }
+	        	send.onclick = () => {
+	        		socket.send(message.value)
 	        	}
 	        }
         </script>
+    </head>
+    <body>
+    	<input id='user' placeholder='User'><button id='connect'>Connect</button>
+    	<div id='chat' style='display:none'>
+    	<input id='message' placeholder='Message'><button id='send'>Send</button>
+    	<table id="messages"></table>
+    	</div>
     </body>
 </html>
