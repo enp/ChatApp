@@ -32,32 +32,36 @@ public class WebSocketEndpoint {
 
 	@OnOpen
 	public void onOpen(Session session, @PathParam("user") String user) throws IOException {
-		logger.info("Open session: {} from user {}", session.getId(), user);
+		logger.info("Open session for user {}", user);
 		connections.put(user, session);
 		int size = (int) collection.size();
 		Cursor cursor = size > 3 ? collection.find(FindOptions.limit(size-3, size)) : collection.find();
 		for (Document message : cursor) {
-			logger.info("Load document: {} in session {} from user {}", message, session.getId(), user);
+			logger.info("Load message {} for user {}", message, user);
 			session.getAsyncRemote().sendObject(message);
 		}
 	}
 
 	@OnMessage
 	public void onMessage(Session session, @PathParam("user") String user, String text) throws IOException, EncodeException {
-		logger.info("Receive message: {} in session {} from user {}", text, session.getId(), user);
+		logger.info("Receive message {} from user {}", text, user);
 		Document message = Document.createDocument("user", user)
 			.put("date", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
 			.put("text", text);
 		collection.insert(message);
+		broadcast(message);
+	}
+
+	private void broadcast(Object message) {
 		for (String destination : connections.keySet()) {
-			logger.info("Send message {} to session {} from user {}", message, connections.get(destination).getId(), destination);
+			logger.info("Send message {} to user {}", message, destination);
 			connections.get(destination).getAsyncRemote().sendObject(message);
 		}
 	}
 
 	@OnClose
 	public void onClose(Session session, @PathParam("user") String user) {
-		logger.info("Close session: {} from user {}", session.getId(), user);
+		logger.info("Close session for user {}", user);
 		connections.remove(user);
 	}
 }
