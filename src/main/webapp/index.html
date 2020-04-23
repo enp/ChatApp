@@ -3,6 +3,41 @@
     <head>
         <meta charset='UTF-8'>
         <title>ChatApp</title>
+		<style>
+			table {
+				font-size: 1.1em;
+			}
+			input, button, label {
+				font-size: 1em;
+			}
+			input, button, label, table, tr, th, td {
+				font-family: droid sans mono,consolas,monospace,courier new,courier,sans-serif;
+			}
+			table {
+				border-width: 2px;
+				border-style: solid;
+				border-color: #999999;
+				border-collapse: collapse;
+			}
+			table th {
+				border-width: 1px;
+				padding: 4px;
+				border-style: solid;
+				border-color: #999999;
+				background-color: #dedede;
+				font-size: 0.8em
+			}
+			table tr:hover {
+				background-color: #f0f0f0;
+			}
+			table td {
+				border-width: 1px;
+				padding: 4px;
+				border-style: solid;
+				border-color: #999999;
+				font-size: 0.8em
+			}
+		</style>
         <script type='text/javascript'>
 	        onload = () => {
 	        	connect.onclick = () => {
@@ -13,13 +48,23 @@
 	                        chat.style.display = 'block'
 	                    }
 			        	socket.onmessage = (message) => {
-			        		//console.log(message.data)
-			        		const row = messages.insertRow(0)
-							const cell = row.insertCell(0)
-			        		cell.appendChild(document.createTextNode(message.data))
+			        		console.log(message)
+			        		message = JSON.parse(message.data)
+			        		if (Array.isArray(message)) {
+			        			users.innerHTML = `Connected users: ${message}`
+			        		} else {
+				        		let row = messages.insertRow(-1)
+								let cell = row.insertCell(0)
+				        		cell.appendChild(document.createTextNode(message.user))
+				        		cell = row.insertCell(0)
+				        		cell.appendChild(document.createTextNode(message.date))
+				        		cell = row.insertCell(0)
+				        		cell.appendChild(document.createTextNode(message.text))
+			        		}
 			        	}
 		        		socket.onclose = () => {
 		        			messages.innerHTML = ''
+			        		users.innerHTML = ''
 	                        connect.innerText = 'Connect'
 	                        chat.style.display = 'none'
 	                    }
@@ -34,10 +79,13 @@
         </script>
     </head>
     <body>
-    	<input id='user' placeholder='User'><button id='connect'>Connect</button>
+    	<input id='user' placeholder='User'><button id='connect'>Connect</button><br><br>
     	<div id='chat' style='display:none'>
-    	<input id='message' placeholder='Message'><button id='send'>Send</button>
-    	<table id='messages'></table>
+    	<input id='message' placeholder='Message'><button id='send'>Send</button><br><br>
+    	<label id='users'></label><br><br>
+    	<table id='messages'>
+    	<tr><th>User</th><th>Date/Time</th><th>Text</th></tr>
+    	</table>
     	</div>
     </body>
 </html>

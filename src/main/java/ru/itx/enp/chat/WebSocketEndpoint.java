@@ -40,6 +40,7 @@ public class WebSocketEndpoint {
 			logger.info("Load message {} for user {}", message, user);
 			session.getAsyncRemote().sendObject(message);
 		}
+		broadcast(connections.keySet());
 	}
 
 	@OnMessage
@@ -63,5 +64,6 @@ public class WebSocketEndpoint {
 	public void onClose(Session session, @PathParam("user") String user) {
 		logger.info("Close session for user {}", user);
 		connections.remove(user);
+		broadcast(connections.keySet());
 	}
 }
