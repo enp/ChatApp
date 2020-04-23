@@ -8,6 +8,7 @@ mainClassName = 'ru.itx.enp.chat.App'
 
 dependencies {
     compile 'javax.websocket:javax.websocket-api:1.1'
+	compile 'com.fasterxml.jackson.core:jackson-databind:2.10.3'
 	compile 'org.dizitart:nitrite:3.4.1'
 	compile 'org.slf4j:slf4j-simple:1.7.30'
 }
